@@ -35,41 +35,28 @@ if __name__ == "__main__":
     E = 100 # Energy rating of battery
     H = 24 # horizon of the optimization
     seed = 5 # seed number 
-    
+
     # read the electricity price data.
     price_data = read_data()
-    
+
     # Setup multi-thread.
     numProcess = 5
     numJobs = 100
     exitFlag = False
-    
-    # Split the tasks into processes.
-    tasks = []
+
     seed = 5
-    for i in range(numProcess):
-        tasks.append([])
-    
+    tasks = [[] for _ in range(numProcess)]
     for d in range(numJobs):
         pi_energy = get_lmp_with_data(price_data, seed, d)
         opt = DayAhead(E, P, pi_energy)
         tasks[d % numProcess].append(opt)
-        
-    processPool = []
-    processList = []
-    for i in range(numProcess):
-        processList.append("Process" + str(i))
- 
-    # Start the threads.
 
-    processId = 0
-    for processName in processList:
-        print ("Starting %s" % processName) 
+    processPool = []
+    processList = [f"Process{str(i)}" for i in range(numProcess)]
+    for processId, processName in enumerate(processList):
+        print(f"Starting {processName}")
         process = myProcess(processId, processName, tasks[processId])
         process.start()
         processPool.append(process)
-        processId += 1
-    
-    
     for t in processPool:
         t.join()

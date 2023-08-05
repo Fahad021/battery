@@ -24,8 +24,8 @@ def OptimalBatteryDispatch(pi_energy, P, E, debug=False):
     # constraints
     constraints = []
     constraints += [E_min * E <= E_soc, E_soc <= E_max * E]
-    constraints += [0 <= P_chg, P_chg <= P]
-    constraints += [0 <= P_dsg, P_dsg <= P]
+    constraints += [P_chg >= 0, P_chg <= P]
+    constraints += [P_dsg >= 0, P_dsg <= P]
     constraints += [E_soc[0] == E_soc[-1]]
 
     for i in range(H):
@@ -37,7 +37,7 @@ def OptimalBatteryDispatch(pi_energy, P, E, debug=False):
 
     # form the problem and solve.
     prob = cp.Problem(objective, constraints)
-    
+
     prob.solve(verbose=False, options={'glpk':{'msg_lev':'GLP_MSG_OFF'}})
 
     result_power = np.round(P_chg.value - P_dsg.value, 2)
@@ -55,7 +55,7 @@ def OptimalBatteryDispatch(pi_energy, P, E, debug=False):
         print('\n')
         print('the energy stored are: ')
         print(result_energy)
-    
+
     return (prob.objective.value, gamma.value, result_power, result_energy)
 
 

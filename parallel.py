@@ -22,9 +22,7 @@ def optimize(threadName, q):
             data = q.get();
             (obj, gamma, result_P, result_E) = OptimalBatteryDispatch(data.pi_energy, data.E, data.P)
             print("The objective value is: %.2f" % obj)
-            queueLock.release()
-        else:
-            queueLock.release()
+        queueLock.release()
 
     
 class myThread (threading.Thread):
@@ -43,31 +41,25 @@ if __name__ == "__main__":
     E = 100 # Energy rating of battery
     H = 24 # horizon of the optimization
     seed = 5 # seed number 
-    
+
     # read the electricity price data.
     price_data = read_data()
-    
+
     # Setup multi-thread.
     numThread = 5
     numJobs = 100
     exitFlag = False
     queueLock = threading.Lock()
     threadPool = []
-    
-    threadList = []
-    for i in range(numThread):
-        threadList.append("Thread" + str(i))
- 
+
+    threadList = [f"Thread{str(i)}" for i in range(numThread)]
     # Start the threads.
     workQueue = queue.Queue(200)
-    threadId = 1
-    for threadName in threadList:
-        print ("Starting %s" % threadName) 
+    for threadId, threadName in enumerate(threadList, start=1):
+        print(f"Starting {threadName}")
         thread = myThread(threadId, threadName, workQueue)
         thread.start()
         threadPool.append(thread)
-        threadId += 1
-    
     # Add the tasks to the queue.
     queueLock.acquire()
     seed = 5
@@ -76,11 +68,11 @@ if __name__ == "__main__":
         opt = DayAhead(E, P, pi_energy)
         workQueue.put(opt)
     queueLock.release()
-    
+
     # Process until the queue is empty.
     while not workQueue.empty():
         pass
     exitFlag = True
-    
+
     for t in threadPool:
         t.join()
